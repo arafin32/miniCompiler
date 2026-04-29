@@ -1,0 +1,32 @@
+# Compiled and executable files
+minicompiler
+*.o
+
+# Generated lexer and parser files
+lex.yy.c
+parser.tab.c
+parser.tab.h
+
+# Output files
+output.tac
+*.tac
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+*.a
+*.so
+*.dylib
+
+# Temporary files
+*.tmp
+*.bak
+
+# Debug files
+*.dSYM/

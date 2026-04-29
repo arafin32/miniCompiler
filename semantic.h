@@ -1,7 +1,9 @@
-#ifndef SYMBOL_TABLE_H
-#define SYMBOL_TABLE_H
+#ifndef SEMANTIC_H
+#define SEMANTIC_H
 
-void insert(char* name, char* type);
-int lookup(char* name);
+#include "ast.h"
+
+void semantic_check(ASTNode* root);
+int semantic_error_count();
 
 #endif

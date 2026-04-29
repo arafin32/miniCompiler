@@ -2,11 +2,12 @@
 #define TAC_H
 
 #include "ast.h"
+#include <stdio.h>
 
 void generateTAC(ASTNode* node);
 void printTAC();
+void printTACToFile(FILE* file);
 
-/* NEW for control flow */
 char* newLabel();
 
 #endif

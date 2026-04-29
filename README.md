@@ -1,6 +1,8 @@
 # MiniCompiler
 
-A simple compiler for **MiniLang**, a minimal programming language designed to demonstrate core compiler concepts. This project implements a complete compilation pipeline from lexical analysis through code generation.
+A compiler for **MiniLang**, a minimal C-like programming language. This project implements a complete compiler frontend with lexical analysis, syntax analysis, semantic analysis, and Three-Address Code (TAC) generation.
+
+**Current Status:** 50% Complete ✅ - All core compiler phases working
 
 ---
 

@@ -1,4 +1,4 @@
-%option noyywrap
+%option noyywrap yylineno
 
 %{
 #include "parser.tab.h"
@@ -42,6 +42,6 @@
 
 "//".*      ;
 
-.           { printf("LEXICAL ERROR: %s\n", yytext); }
+.           { printf("LEXICAL ERROR at line %d: %s\n", yylineno, yytext); }
 
 %%

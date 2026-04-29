@@ -54,28 +54,29 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    INT = 258,                     /* INT  */
-    BOOL = 259,                    /* BOOL  */
-    IF = 260,                      /* IF  */
-    ELSE = 261,                    /* ELSE  */
-    WHILE = 262,                   /* WHILE  */
-    PRINT = 263,                   /* PRINT  */
-    NUMBER = 264,                  /* NUMBER  */
-    ID = 265,                      /* ID  */
-    PLUS = 266,                    /* PLUS  */
-    MINUS = 267,                   /* MINUS  */
-    MUL = 268,                     /* MUL  */
-    DIV = 269,                     /* DIV  */
-    EQ = 270,                      /* EQ  */
-    NE = 271,                      /* NE  */
-    GT = 272,                      /* GT  */
-    LT = 273,                      /* LT  */
-    ASSIGN = 274,                  /* ASSIGN  */
-    SEMI = 275,                    /* SEMI  */
-    LP = 276,                      /* LP  */
-    RP = 277,                      /* RP  */
-    LB = 278,                      /* LB  */
-    RB = 279                       /* RB  */
+    UMINUS = 258,                  /* UMINUS  */
+    INT = 259,                     /* INT  */
+    BOOL = 260,                    /* BOOL  */
+    IF = 261,                      /* IF  */
+    ELSE = 262,                    /* ELSE  */
+    WHILE = 263,                   /* WHILE  */
+    PRINT = 264,                   /* PRINT  */
+    NUMBER = 265,                  /* NUMBER  */
+    ID = 266,                      /* ID  */
+    PLUS = 267,                    /* PLUS  */
+    MINUS = 268,                   /* MINUS  */
+    MUL = 269,                     /* MUL  */
+    DIV = 270,                     /* DIV  */
+    EQ = 271,                      /* EQ  */
+    NE = 272,                      /* NE  */
+    GT = 273,                      /* GT  */
+    LT = 274,                      /* LT  */
+    ASSIGN = 275,                  /* ASSIGN  */
+    SEMI = 276,                    /* SEMI  */
+    LP = 277,                      /* LP  */
+    RP = 278,                      /* RP  */
+    LB = 279,                      /* LB  */
+    RB = 280                       /* RB  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -84,13 +85,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 12 "parser.y"
+#line 13 "parser.y"
 
     int intval;
     char* str;
     struct ASTNode* node;
 
-#line 94 "parser.tab.h"
+#line 95 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

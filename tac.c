@@ -71,6 +71,37 @@ void generateTAC(ASTNode* node)
 {
     if (!node) return;
 
+    /* block statement */
+    if (strcmp(node->type, "block") == 0)
+    {
+        generateTAC(node->left);
+        generateTAC(node->right);
+        return;
+    }
+
+    /* scope (block with braces) */
+    if (strcmp(node->type, "scope") == 0)
+    {
+        generateTAC(node->left);
+        return;
+    }
+
+    /* declaration - no code generation */
+    if (strcmp(node->type, "decl") == 0)
+    {
+        return;
+    }
+
+    /* print statement */
+    if (strcmp(node->type, "print") == 0)
+    {
+        char* val = genExpr(node->left);
+        char line[120];
+        sprintf(line, "print %s", val);
+        emit(line);
+        return;
+    }
+
     /* assignment */
     if (strcmp(node->type, "assign") == 0)
     {
@@ -79,10 +110,11 @@ void generateTAC(ASTNode* node)
         char line[120];
         sprintf(line, "%s = %s", node->left->value, r);
         emit(line);
+        return;
     }
 
     /* ---------------- IF ---------------- */
-    else if (strcmp(node->type, "if") == 0)
+    if (strcmp(node->type, "if") == 0)
     {
         char* cond = genExpr(node->left);
 
@@ -97,10 +129,11 @@ void generateTAC(ASTNode* node)
         char line2[120];
         sprintf(line2, "%s:", L1);
         emit(line2);
+        return;
     }
 
     /* ---------------- IF-ELSE ---------------- */
-    else if (strcmp(node->type, "ifelse") == 0)
+    if (strcmp(node->type, "ifelse") == 0)
     {
         char* cond = genExpr(node->left);
 
@@ -124,10 +157,11 @@ void generateTAC(ASTNode* node)
 
         sprintf(line1, "%s:", L2);
         emit(line1);
+        return;
     }
 
     /* ---------------- WHILE ---------------- */
-    else if (strcmp(node->type, "while") == 0)
+    if (strcmp(node->type, "while") == 0)
     {
         char* L1 = newLabel();
         char* L2 = newLabel();
@@ -150,14 +184,23 @@ void generateTAC(ASTNode* node)
 
         sprintf(line1, "%s:", L2);
         emit(line1);
+        return;
     }
 }
 
-/* ---------------- PRINT ---------------- */
+/* ---------------- PRINT TAC TO CONSOLE -------- */
 void printTAC()
 {
     printf("\n=== THREE ADDRESS CODE ===\n");
 
     for(int i = 0; i < tacIndex; i++)
         printf("%s\n", tacCode[i]);
+}
+/* output to file */
+void printTACToFile(FILE* file)
+{
+    fprintf(file, "=== THREE ADDRESS CODE ===\n");
+
+    for(int i = 0; i < tacIndex; i++)
+        fprintf(file, "%s\n", tacCode[i]);
 }

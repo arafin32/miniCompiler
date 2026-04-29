@@ -5,6 +5,7 @@
 
 void yyerror(const char *s);
 int yylex();
+extern int yylineno;
 
 ASTNode* root;
 %}
@@ -15,9 +16,13 @@ ASTNode* root;
     struct ASTNode* node;
 }
 
-/* precedence */
+/* precedence and associativity (lowest to highest) */
+%nonassoc ELSE
+%nonassoc IF
 %left PLUS MINUS
 %left MUL DIV
+%nonassoc UMINUS
+%left LT GT EQ NE
 
 /* tokens */
 %token INT BOOL IF ELSE WHILE PRINT
@@ -58,11 +63,32 @@ statements:
 /* ---------------- STATEMENTS ---------------- */
 
 statement:
-    ID ASSIGN expr SEMI
+    INT ID SEMI
+    {
+        $$ = createNode("decl",
+                        createLeaf($2),
+                        createLeaf("int"));
+    }
+
+  | BOOL ID SEMI
+    {
+        $$ = createNode("decl",
+                        createLeaf($2),
+                        createLeaf("bool"));
+    }
+
+  | ID ASSIGN expr SEMI
     {
         $$ = createNode("assign",
                         createLeaf($1),
                         $3);
+    }
+
+  | PRINT LP expr RP SEMI
+    {
+        $$ = createNode("print",
+                        $3,
+                        NULL);
     }
 
   | IF LP expr RP statement
@@ -70,7 +96,7 @@ statement:
         $$ = createNode("if", $3, $5);
     }
 
-  | IF LP expr RP statement ELSE statement
+  | IF LP expr RP statement ELSE statement %prec ELSE
     {
         ASTNode* temp = createNode("ifelse", $3,
                         createNode("block", $5, $7));
@@ -84,7 +110,7 @@ statement:
 
   | LB statements RB
     {
-        $$ = $2;
+        $$ = createNode("scope", $2, NULL);
     }
 ;
 
@@ -119,6 +145,18 @@ expr:
     {
         $$ = createNode("eq", $1, $3);
     }
+  | expr NE expr
+    {
+        $$ = createNode("ne", $1, $3);
+    }
+  | LP expr RP
+    {
+        $$ = $2;
+    }
+  | MINUS expr %prec UMINUS
+    {
+        $$ = createNode("neg", $2, NULL);
+    }
   | NUMBER
     {
         $$ = createLeafInt($1);
@@ -133,5 +171,5 @@ expr:
 
 void yyerror(const char *s)
 {
-    printf("SYNTAX ERROR: %s\n", s);
+    printf("SYNTAX ERROR at line %d: %s\n", yylineno, s);
 }
