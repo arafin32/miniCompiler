@@ -11,6 +11,9 @@ parser.tab.h
 output.tac
 *.tac
 
+# Build artifacts
+build/
+
 # IDE and editor files
 .vscode/
 .idea/

@@ -1,28 +1,27 @@
-all: minicompiler
+SRC=src
+BUILD=build
+CC=gcc
+CFLAGS=-I$(SRC) -I$(BUILD)
 
-minicompiler: lex.yy.c parser.tab.c ast.o symbol_table.o semantic.o tac.o main.o
-	gcc lex.yy.c parser.tab.c ast.o symbol_table.o semantic.o tac.o main.o -o minicompiler -lfl
+YACC=$(BUILD)/parser.tab.c
+YACC_HDR=$(BUILD)/parser.tab.h
+LEX=$(BUILD)/lex.yy.c
+OBJS=$(BUILD)/ast.o $(BUILD)/symbol_table.o $(BUILD)/semantic.o $(BUILD)/tac.o $(BUILD)/optimizer.o $(BUILD)/codegen_extended.o $(BUILD)/main.o
+TARGET=$(BUILD)/minicompiler
 
-parser.tab.c parser.tab.h: parser.y
-	bison -d parser.y
+all: $(TARGET)
 
-lex.yy.c: lexer.l parser.tab.h
-	flex lexer.l
+$(TARGET): $(LEX) $(YACC) $(OBJS)
+	$(CC) $(CFLAGS) $(LEX) $(YACC) $(OBJS) -o $(TARGET) -lfl
 
-ast.o: ast.c
-	gcc -c ast.c
+$(YACC) $(YACC_HDR): $(SRC)/parser.y
+	cd $(SRC) && CPPFLAGS=-I. bison -d -o ../$(YACC) parser.y
 
-symbol_table.o: symbol_table.c
-	gcc -c symbol_table.c
+$(LEX): $(SRC)/lexer.l $(YACC_HDR)
+	cd $(BUILD) && CPPFLAGS=-I. flex -o ../$(LEX) ../$(SRC)/lexer.l
 
-semantic.o: semantic.c
-	gcc -c semantic.c
-
-tac.o: tac.c
-	gcc -c tac.c
-
-main.o: main.c
-	gcc -c main.c
+$(BUILD)/%.o: $(SRC)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o lex.yy.c parser.tab.c parser.tab.h minicompiler
+	rm -rf $(BUILD)/*

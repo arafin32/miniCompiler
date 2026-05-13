@@ -2,6 +2,8 @@
 #include "ast.h"
 #include "tac.h"
 #include "semantic.h"
+#include "optimizer.h"
+#include "codegen_extended.h"
 
 extern int yyparse();
 extern ASTNode* root;
@@ -21,21 +23,36 @@ int main()
         printf("\n=== SEMANTIC ANALYSIS ===\n");
         semantic_check(root);
 
-        /* TAC generation and output to file */
+        /* TAC generation */
         printf("\n=== GENERATING TAC ===\n");
         generateTAC(root);
-        
+        printTAC();
+
+        /* Code optimization */
+        optimizeTAC();
+        printTAC();
+        printOptimizationStats();
+
+        /* Stack machine code generation */
+        generateStackMachineCode();
+        printStackMachineTAC();
+
+        /* Output to files */
         FILE* output = fopen("output.tac", "w");
         if (output)
         {
+            fprintf(output, "=== UNOPTIMIZED THREE ADDRESS CODE ===\n");
             printTACToFile(output);
+            fprintf(output, "\n");
+            printOptimizationStats();
+            fprintf(output, "\n");
+            printStackMachineCode(output);
             fclose(output);
-            printf("TAC written to output.tac\n");
+            printf("\nCompilation output written to output.tac\n");
         }
         else
         {
             printf("Error: could not open output.tac\n");
-            printTAC();
         }
     }
 
