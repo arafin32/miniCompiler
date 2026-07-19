@@ -349,15 +349,7 @@ MiniCompiler/
 │   └── output.tac
 ├── docs/                   # Documentation and reports
 │   ├── FINAL_REPORT_100_PERCENT.md
-│   ├── IMPLEMENTATION_SUMMARY.md
-│   ├── MILESTONE_50_PERCENT.md
-│   ├── PROGRESS_50_PERCENT.md
-│   ├── PRESENTATION_CHECKLIST.md
-│   ├── QUICK_REFERENCE.md
-│   ├── TECHNICAL_REPORT_UOC_CSE712.md
-│   ├── TESTING_GUIDE.md
-│   ├── TEST_RESULTS_100_PERCENT.md
-│   └── UOC_COMPLIANCE_VERIFICATION.md
+│   └── Compiler_Lab_guidelines.pdf
 ├── tests/                  # All test programs and cases
 │   ├── final_demo.ml
 │   ├── ifelse_test.ml
@@ -377,8 +369,7 @@ MiniCompiler/
 │       └── test4.ml
 ├── .gitignore
 ├── Makefile
-├── README.md
-└── Compiler_Lab_guidelines.pdf
+└── README.md
 ```
 
 ### Generated Files (after `make`)
