@@ -45,10 +45,10 @@ function run_all_tests() {
 }
 
 function run_input_file() {
-  echo "Enter the path to the input file:"
-  read -r input_file
+  input_file="$ROOT_DIR/input.ml"
   if [ ! -f "$input_file" ]; then
-    echo "File not found: $input_file"
+    echo "Default input file not found: $input_file"
+    echo "Please create input.ml in the project root."
     return
   fi
   echo "Running $input_file..."
@@ -74,7 +74,7 @@ function main_menu() {
   echo "MiniCompiler helper"
   echo "===================="
   echo "1) Run all test files"
-  echo "2) Run code from an input file"
+  echo "2) Run code from default input.ml"
   echo "3) Type code directly"
   echo "4) Build only"
   echo "5) Exit"
