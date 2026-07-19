@@ -1,5 +1,3 @@
-int x;
-int y;
-x = 5;
-y = 3;
-print(x + y);
+int i = 10;
+int j = 20;
+print(i + j);

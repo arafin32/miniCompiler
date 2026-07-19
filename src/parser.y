@@ -77,6 +77,29 @@ statement:
                         createLeaf("bool"));
     }
 
+  /* declaration with initialization */
+  | INT ID ASSIGN expr SEMI
+    {
+        $$ = createNode("block",
+                        createNode("decl",
+                                   createLeaf($2),
+                                   createLeaf("int")),
+                        createNode("assign",
+                                   createLeaf($2),
+                                   $4));
+    }
+
+  | BOOL ID ASSIGN expr SEMI
+    {
+        $$ = createNode("block",
+                        createNode("decl",
+                                   createLeaf($2),
+                                   createLeaf("bool")),
+                        createNode("assign",
+                                   createLeaf($2),
+                                   $4));
+    }
+
   | ID ASSIGN expr SEMI
     {
         $$ = createNode("assign",
