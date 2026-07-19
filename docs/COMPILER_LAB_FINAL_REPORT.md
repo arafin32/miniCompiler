@@ -1297,8 +1297,6 @@ cat output.tac    # View generated TAC and machine code
 |--------|---------|
 | `make` | Build the compiler |
 | `make clean` | Remove build artifacts |
-| `make test` | Run test suite |
-| `make rebuild` | Clean and build |
 
 ---
 
