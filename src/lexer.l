@@ -7,6 +7,8 @@
 #include <string.h>
 %}
 
+%x COMMENT
+
 %%
 
 "if"        { return IF; }
@@ -43,6 +45,14 @@
 [ \t\n]+    ;
 
 "//".*      ;
+
+"/*"        { BEGIN(COMMENT); }
+
+<COMMENT>"*/"   { BEGIN(INITIAL); }
+<COMMENT>\n      { yylineno++; }
+<COMMENT>[^\n*]+  ;
+<COMMENT>\*       ;
+<COMMENT><<EOF>> { printf("LEXICAL ERROR at line %d: unterminated comment\n", yylineno); return 0; }
 
 .           { printf("LEXICAL ERROR at line %d: %s\n", yylineno, yytext); }
 

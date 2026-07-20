@@ -29,6 +29,11 @@ typedef struct {
 
 Register registers[4];  /* r0-r3 */
 
+static int isNum(const char* str);
+static void spillRegister(int reg);
+void storeValue(int reg, const char* varName);
+static int allocateRegisterAvoid(const char* tempVar, int avoid1, int avoid2);
+
 void initRegisters()
 {
     strcpy(registers[0].name, "r0");
@@ -36,7 +41,127 @@ void initRegisters()
     strcpy(registers[2].name, "r2");
     strcpy(registers[3].name, "r3");
     for (int i = 0; i < 4; i++)
+    {
         registers[i].inUse = 0;
+        registers[i].tempVar[0] = '\0';
+    }
+}
+
+static int findRegister(const char* tempVar)
+{
+    if (!tempVar || !*tempVar) return -1;
+    for (int i = 0; i < 4; i++)
+    {
+        if (registers[i].inUse && strcmp(registers[i].tempVar, tempVar) == 0)
+            return i;
+    }
+    return -1;
+}
+
+static void spillRegister(int reg)
+{
+    if (reg < 0 || reg >= 4) return;
+    if (!registers[reg].inUse)
+        return;
+
+    if (registers[reg].tempVar[0] != '\0' && !isNum(registers[reg].tempVar))
+    {
+        storeValue(reg, registers[reg].tempVar);
+    }
+
+    registers[reg].inUse = 0;
+    registers[reg].tempVar[0] = '\0';
+}
+
+static int allocateRegisterAvoid(const char* tempVar, int avoid1, int avoid2)
+{
+    int idx = findRegister(tempVar);
+    if (idx >= 0)
+        return idx;
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (!registers[i].inUse && i != avoid1 && i != avoid2)
+        {
+            registers[i].inUse = 1;
+            registers[i].tempVar[0] = '\0';
+            return i;
+        }
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (!registers[i].inUse)
+        {
+            registers[i].inUse = 1;
+            registers[i].tempVar[0] = '\0';
+            return i;
+        }
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (i != avoid1 && i != avoid2)
+        {
+            spillRegister(i);
+            registers[i].inUse = 1;
+            registers[i].tempVar[0] = '\0';
+            return i;
+        }
+    }
+
+    spillRegister(0);
+    registers[0].inUse = 1;
+    registers[0].tempVar[0] = '\0';
+    return 0;
+}
+
+int allocateRegister(const char* tempVar)
+{
+    return allocateRegisterAvoid(tempVar, -1, -1);
+}
+
+int allocateRegisterForDest(const char* tempVar, int avoid1, int avoid2)
+{
+    int idx = findRegister(tempVar);
+    if (idx >= 0)
+        return idx;
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (!registers[i].inUse && i != avoid1 && i != avoid2)
+        {
+            registers[i].inUse = 1;
+            registers[i].tempVar[0] = '\0';
+            return i;
+        }
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (!registers[i].inUse)
+        {
+            registers[i].inUse = 1;
+            registers[i].tempVar[0] = '\0';
+            return i;
+        }
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (i != avoid1 && i != avoid2)
+        {
+            spillRegister(i);
+            registers[i].inUse = 1;
+            registers[i].tempVar[0] = '\0';
+            return i;
+        }
+    }
+
+    spillRegister(0);
+    registers[0].inUse = 1;
+    registers[0].tempVar[0] = '\0';
+    return 0;
 }
 
 void emitStack(const char* code)
@@ -62,23 +187,6 @@ int getVarOffset(const char* varName)
     return varStorage[varCount - 1].offset;
 }
 
-/* Allocate a register for a temporary */
-int allocateRegister(const char* tempVar)
-{
-    for (int i = 0; i < 4; i++)
-    {
-        if (!registers[i].inUse)
-        {
-            registers[i].inUse = 1;
-            strcpy(registers[i].tempVar, tempVar);
-            return i;
-        }
-    }
-    
-    /* All registers in use, use r3 (simple LRU) */
-    return 3;
-}
-
 /* Check if value is a number */
 int isNum(const char* str)
 {
@@ -88,9 +196,47 @@ int isNum(const char* str)
     return 1;
 }
 
-/* Generate code to load a value into a register */
-void loadValue(int reg, const char* value)
+static int isLabelLine(const char* line)
 {
+    if (!line || !*line) return 0;
+    const char* colon = strchr(line, ':');
+    if (!colon) return 0;
+    for (const char* p = line; p < colon; p++)
+    {
+        if (*p == ' ' || *p == '\t')
+            return 0;
+    }
+    return 1;
+}
+
+static void invalidateVariableRegisters(const char* varName, int keepReg)
+{
+    if (!varName || !*varName) return;
+    for (int i = 0; i < 4; i++)
+    {
+        if (i == keepReg)
+            continue;
+        if (registers[i].inUse && strcmp(registers[i].tempVar, varName) == 0)
+        {
+            registers[i].tempVar[0] = '\0';
+        }
+    }
+}
+
+/* Generate code to load a value into a register */
+int loadValue(int reg, const char* value)
+{
+    int existing = -1;
+    if (!isNum(value))
+        existing = findRegister(value);
+    if (existing >= 0)
+        return existing;
+
+    if (registers[reg].inUse && strcmp(registers[reg].tempVar, value) != 0)
+    {
+        spillRegister(reg);
+    }
+
     char code[200];
     if (isNum(value))
     {
@@ -104,11 +250,18 @@ void loadValue(int reg, const char* value)
                 registers[reg].name, offset, value);
     }
     emitStack(code);
+    registers[reg].inUse = 1;
+    strcpy(registers[reg].tempVar, value);
+    return reg;
 }
 
 /* Generate code to store a register to variable */
 void storeValue(int reg, const char* varName)
 {
+    if (registers[reg].inUse && strcmp(registers[reg].tempVar, varName) == 0)
+        return;
+
+    invalidateVariableRegisters(varName, reg);
     char code[200];
     int offset = getVarOffset(varName);
     sprintf(code, "  STORE [bp-%d], %s   ; Store %s", 
@@ -126,7 +279,6 @@ void generateStackMachineCode()
     nextOffset = 0;
     initRegisters();
     
-    emitStack("=== STACK MACHINE CODE ===");
     emitStack("");
     emitStack("; Pseudo-assembly for simple stack machine");
     emitStack("; Registers: r0, r1, r2, r3");
@@ -144,12 +296,13 @@ void generateStackMachineCode()
         strcpy(line, tacCode[i]);
         
         /* Skip empty lines and labels */
-        if (strlen(line) == 0 || (line[0] >= 'A' && line[0] <= 'Z' && line[1] == ':'))
+        if (strlen(line) == 0 || isLabelLine(line))
         {
             if (strlen(line) > 0)
             {
                 sprintf(code, "%s", line);
                 emitStack(code);
+                initRegisters();
             }
             continue;
         }
@@ -159,9 +312,9 @@ void generateStackMachineCode()
         /* Binary operation: t = a op b */
         if (sscanf(line, "%s = %s %s %s", temp, op1, op, op2) == 4)
         {
-            int r1 = allocateRegister(op1);
-            int r2 = allocateRegister(op2);
-            int dest = allocateRegister(temp);
+            int r1 = allocateRegisterAvoid(op1, -1, -1);
+            int r2 = allocateRegisterAvoid(op2, r1, -1);
+            int dest = allocateRegisterForDest(temp, r1, r2);
             
             loadValue(r1, op1);
             loadValue(r2, op2);
@@ -190,8 +343,18 @@ void generateStackMachineCode()
             else if (strcmp(op, "==") == 0)
                 sprintf(code, "  EQ %s, %s, %s", 
                         registers[dest].name, registers[r1].name, registers[r2].name);
-            
+
             emitStack(code);
+            strcpy(registers[dest].tempVar, temp);
+            continue;
+        }
+        
+        /* Assignment to temp: t = value */
+        if (sscanf(line, "%s = %s", temp, val) == 2 && temp[0] == 't')
+        {
+            int r = allocateRegisterForDest(temp, -1, -1);
+            loadValue(r, val);
+            strcpy(registers[r].tempVar, temp);
             continue;
         }
         
@@ -202,15 +365,7 @@ void generateStackMachineCode()
             loadValue(r, val);
             storeValue(r, var);
             registers[r].inUse = 0;
-            continue;
-        }
-        
-        /* Assignment to temp: t = value */
-        if (sscanf(line, "%s = %s", temp, val) == 2 && temp[0] == 't')
-        {
-            int r = allocateRegister(val);
-            loadValue(r, val);
-            strcpy(registers[r].tempVar, temp);
+            registers[r].tempVar[0] = '\0';
             continue;
         }
         
@@ -222,6 +377,7 @@ void generateStackMachineCode()
             sprintf(code, "  PRINT %s", registers[r].name);
             emitStack(code);
             registers[r].inUse = 0;
+            registers[r].tempVar[0] = '\0';
             continue;
         }
         
@@ -233,6 +389,7 @@ void generateStackMachineCode()
             sprintf(code, "  JFALSE %s, %s", registers[r].name, label);
             emitStack(code);
             registers[r].inUse = 0;
+            registers[r].tempVar[0] = '\0';
             continue;
         }
         

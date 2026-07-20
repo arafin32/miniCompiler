@@ -23,6 +23,12 @@ int main()
         printf("\n=== SEMANTIC ANALYSIS ===\n");
         semantic_check(root);
 
+        if (semantic_error_count() > 0)
+        {
+            printf("\nCompilation stopped due to semantic errors.\n");
+            return 0;
+        }
+
         /* TAC generation */
         printf("\n=== GENERATING TAC ===\n");
         generateTAC(root);

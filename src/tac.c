@@ -51,7 +51,13 @@ char* genExpr(ASTNode* node)
     if (!node) return "";
 
     if (!node->left && !node->right)
+    {
+        if (strcmp(node->value, "true") == 0)
+            return "1";
+        if (strcmp(node->value, "false") == 0)
+            return "0";
         return node->value;
+    }
 
     char* l = genExpr(node->left);
     char* r = genExpr(node->right);

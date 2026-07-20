@@ -26,6 +26,9 @@ char* inferExprType(ASTNode* node)
         /* If it's an identifier, look up its type */
         if (strlen(node->value) > 0 && isalpha(node->value[0]))
         {
+            if (strcmp(node->value, "true") == 0 || strcmp(node->value, "false") == 0)
+                return "bool";
+
             char* type = getSymbolType(node->value);
             return type ? type : "int";
         }
@@ -45,6 +48,13 @@ char* inferExprType(ASTNode* node)
         {
             printf("TYPE ERROR: Arithmetic operations require int operands\n");
             type_errors++;
+        }
+        if (strcmp(node->type, "div") == 0 && node->right &&
+            node->right->left == NULL && node->right->right == NULL &&
+            strcmp(node->right->value, "0") == 0)
+        {
+            printf("SEMANTIC ERROR: Division by zero\n");
+            error_count++;
         }
         return "int";
     }
@@ -143,6 +153,12 @@ void check_ast(ASTNode* node)
         strcmp(node->type, "ifelse") == 0 ||
         strcmp(node->type, "while") == 0)
     {
+        char* condType = inferExprType(node->left);
+        if (strcmp(condType, "bool") != 0)
+        {
+            printf("TYPE ERROR: %s condition must be bool\n", strcmp(node->type, "while") == 0 ? "While" : "If");
+            type_errors++;
+        }
         check_ast(node->left);
         check_ast(node->right);
         return;
@@ -157,17 +173,22 @@ void check_ast(ASTNode* node)
     }
 
     /* expression: check variable references */
-    if (node->left || node->right)
+    if (!node->left && !node->right)
     {
-        if (strlen(node->value) > 0 && node->value[0] >= 'a' && node->value[0] <= 'z')
+        if (strlen(node->value) > 0 && isalpha(node->value[0]) &&
+            strcmp(node->value, "true") != 0 && strcmp(node->value, "false") != 0)
         {
-            /* identifier usage must be declared */
             if (lookup(node->value) < 0)
             {
                 printf("SEMANTIC ERROR: Undeclared variable '%s'\n", node->value);
                 error_count++;
             }
         }
+        return;
+    }
+
+    if (node->left || node->right)
+    {
         check_ast(node->left);
         check_ast(node->right);
     }
