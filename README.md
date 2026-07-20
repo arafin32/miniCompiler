@@ -36,35 +36,128 @@ This project demonstrates complete compiler design with advanced optimization te
 
 ---
 
+# MiniCompiler
+
+MiniCompiler is a small teaching compiler for a tiny imperative language (MiniLang). It demonstrates a complete compilation pipeline: lexing (Flex), parsing (Bison), AST construction, semantic checking, three-address code (TAC) generation, optimizations, and translation to a simple stack-machine pseudo-assembly.
+
+This repository contains a C implementation of the compiler and a small test-suite. It is intended for learning, experimentation, and extension.
+
 ## Features
 
-### Language Features (Complete)
-- ✅ **Variable declarations** - `int` and `bool` types
-- ✅ **Arithmetic expressions** - Addition, subtraction, multiplication, division
-- ✅ **Comparison operators** - Equal to (`==`), not equal (`!=`), greater than (`>`), less than (`<`)
-- ✅ **Control flow** - `if`, `else`, and `while` statements
-- ✅ **Variable assignments** - Simple and compound assignments
-- ✅ **I/O operations** - `print` statement for output
-- ✅ **Comments** - Single-line comments using `//`
-- ✅ **Block scoping** - Nested block scopes with `{ }`
+- Lexer and parser (Flex + Bison)
+- AST-based semantic analysis with type checking
+- TAC generation and a set of conservative optimizations
+- Stack-machine code generation with simple register management
+- Test suite and example programs in `tests/`
 
-### Compiler Features (Complete)
-- ✅ **AST visualization** - Prints the parsed Abstract Syntax Tree
-- ✅ **TAC generation** - Produces Three-Address Code intermediate representation
-- ✅ **Type checking** - Complete type inference and compatibility checking
-- ✅ **Error detection** - Undeclared variables, duplicate declarations, type errors
-- ✅ **Code optimization** - Multiple optimization passes
-- ✅ **Stack machine code** - Pseudo-assembly target code generation
+## Prerequisites
 
----
+Ensure you have the following installed on a Unix/Linux system:
 
-## Language Syntax
+- `gcc` (C compiler)
+- `make`
+- `flex`
+- `bison`
 
-### Basic Elements
+On Debian/Ubuntu you can install them with:
 
-**Data Types:**
-```minilang
-int x;      // Integer variable
+```bash
+sudo apt update
+sudo apt install build-essential flex bison
+```
+
+## Build
+
+From the project root run:
+
+```bash
+make
+```
+
+This builds the compiler binary at `build/minicompiler`.
+
+If you need to regenerate the parser/lexer manually:
+
+```bash
+flex -o build/lex.yy.c src/lexer.l
+bison -d -o build/parser.tab.c src/parser.y
+gcc -o build/minicompiler build/lex.yy.c build/parser.tab.c src/*.c -Isrc
+```
+
+## Run the Compiler
+
+Usage (read from stdin):
+
+```bash
+./build/minicompiler < input.ml
+```
+
+Examples:
+
+```bash
+# compile and show TAC + stack-machine output for input.ml
+./build/minicompiler < input.ml
+
+# compile and run a test program file
+./build/minicompiler < tests/test_prog.ml
+```
+
+The compiler will write TAC and stack-machine output to `output.tac` in the repository root when generation succeeds.
+
+## Running the Error Test Suite
+
+A set of negative tests that verify semantic checks is available under `tests/` (files `error01_*.ml` .. `error20_*.ml`). Run them like this:
+
+```bash
+for f in tests/error*.ml; do
+    echo "=== $f ==="
+    ./build/minicompiler < "$f"
+done
+```
+
+These tests ensure the compiler stops and reports semantic errors instead of producing invalid TAC or stack-code.
+
+## Project Layout
+
+- `src/` — source files (lexer, parser, AST, semantic checks, TAC generator, optimizer, codegen)
+- `build/` — generated parser/lexer and compiled binary after `make`
+- `tests/` — example programs and error-suite testcases
+- `docs/` — final report and project documentation
+
+## Recent Fixes (post-submission)
+
+- Conservative dead-store elimination: optimizer preserves named-variable initializations and only removes dead temporaries.
+- Strengthened semantic checks: undeclared identifiers in expressions, boolean condition type checking, and constant division-by-zero detection.
+- Boolean literals are lowered to TAC constants (`true` → `1`, `false` → `0`).
+- Stack-machine codegen: fixed label emission, safer register spill/reload, removed duplicate headers.
+- Added the error-handling test-suite under `tests/`.
+
+## Contributing
+
+Contributions and issues are welcome. If you add tests or optimizations, please run the test-suite and document changes in `docs/`.
+
+Suggested workflow:
+
+```bash
+git checkout -b feature/your-change
+# make edits
+make
+# run tests
+for f in tests/*.ml; do ./build/minicompiler < "$f"; done
+git add -A && git commit -m "Describe change"
+git push --set-upstream origin feature/your-change
+```
+
+## Contact
+
+Project: https://github.com/arafin32/miniCompiler
+
+Maintainer: Arafin (see repository for contact details)
+
+## License
+
+This project is provided for educational use. See `LICENSE` if present for details.
+
 bool flag;  // Boolean variable
 ```
 
