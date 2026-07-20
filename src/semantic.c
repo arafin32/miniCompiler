@@ -95,19 +95,20 @@ void check_ast(ASTNode* node)
     if (strcmp(node->type, "assign") == 0)
     {
         char* var_name = node->left->value;
-        char* var_type;
         
-        /* If variable is not declared, implicitly declare it as the expression type */
-        char* expr_type = inferExprType(node->right);
         if (lookup(var_name) < 0)
         {
-            insert(var_name, expr_type);
-            var_type = expr_type;
+            printf("SEMANTIC ERROR: Undeclared variable '%s'\n", var_name);
+            error_count++;
+            check_ast(node->right);
+            return;
         }
-        else
-        {
-            var_type = getSymbolType(var_name);
-        }
+        
+        /* Get the variable type */
+        char* var_type = getSymbolType(var_name);
+        
+        /* Infer the expression type */
+        char* expr_type = inferExprType(node->right);
         
         /* Check type compatibility */
         if (strcmp(var_type, expr_type) != 0)
@@ -160,10 +161,11 @@ void check_ast(ASTNode* node)
     {
         if (strlen(node->value) > 0 && node->value[0] >= 'a' && node->value[0] <= 'z')
         {
-            /* might be identifier - implicitly declare as int if needed */
+            /* identifier usage must be declared */
             if (lookup(node->value) < 0)
             {
-                insert(node->value, "int");
+                printf("SEMANTIC ERROR: Undeclared variable '%s'\n", node->value);
+                error_count++;
             }
         }
         check_ast(node->left);

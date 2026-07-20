@@ -35,7 +35,7 @@ ASTNode* root;
 %token LP RP LB RB
 
 /* types */
-%type <node> program statements statement expr
+%type <node> program statements statement expr matched_statement unmatched_statement
 
 %%
 
@@ -63,6 +63,11 @@ statements:
 /* ---------------- STATEMENTS ---------------- */
 
 statement:
+    matched_statement
+  | unmatched_statement
+;
+
+matched_statement:
     INT ID SEMI
     {
         $$ = createNode("decl",
@@ -77,7 +82,6 @@ statement:
                         createLeaf("bool"));
     }
 
-  /* declaration with initialization */
   | INT ID ASSIGN expr SEMI
     {
         $$ = createNode("block",
@@ -114,26 +118,14 @@ statement:
                         NULL);
     }
 
-  | PRINT expr SEMI
-    {
-        $$ = createNode("print",
-                        $2,
-                        NULL);
-    }
-
-  | IF LP expr RP statement
-    {
-        $$ = createNode("if", $3, $5);
-    }
-
-  | IF LP expr RP statement ELSE statement %prec ELSE
+  | IF LP expr RP matched_statement ELSE matched_statement
     {
         ASTNode* temp = createNode("ifelse", $3,
                         createNode("block", $5, $7));
         $$ = temp;
     }
 
-  | WHILE LP expr RP statement
+  | WHILE LP expr RP matched_statement
     {
         $$ = createNode("while", $3, $5);
     }
@@ -141,6 +133,20 @@ statement:
   | LB statements RB
     {
         $$ = createNode("scope", $2, NULL);
+    }
+;
+
+unmatched_statement:
+    IF LP expr RP statement
+    {
+        $$ = createNode("if", $3, $5);
+    }
+
+  | IF LP expr RP matched_statement ELSE unmatched_statement
+    {
+        ASTNode* temp = createNode("ifelse", $3,
+                        createNode("block", $5, $7));
+        $$ = temp;
     }
 ;
 

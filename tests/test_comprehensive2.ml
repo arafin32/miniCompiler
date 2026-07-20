@@ -12,7 +12,7 @@ while (count < 5)
 
 if (sum > 10)
 {
-    print sum;
+    print(sum);
 }
 else
 {
