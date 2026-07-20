@@ -14,6 +14,8 @@
 "while"     { return WHILE; }
 "int"       { return INT; }
 "bool"      { return BOOL; }
+"true"      { return TRUE; }
+"false"     { return FALSE; }
 "print"     { return PRINT; }
 
 [0-9]+      { yylval.intval = atoi(yytext); return NUMBER; }

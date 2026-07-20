@@ -25,7 +25,7 @@ ASTNode* root;
 %left LT GT EQ NE
 
 /* tokens */
-%token INT BOOL IF ELSE WHILE PRINT
+%token INT BOOL IF ELSE WHILE PRINT TRUE FALSE
 %token <intval> NUMBER
 %token <str> ID
 
@@ -114,6 +114,13 @@ statement:
                         NULL);
     }
 
+  | PRINT expr SEMI
+    {
+        $$ = createNode("print",
+                        $2,
+                        NULL);
+    }
+
   | IF LP expr RP statement
     {
         $$ = createNode("if", $3, $5);
@@ -179,6 +186,14 @@ expr:
   | MINUS expr %prec UMINUS
     {
         $$ = createNode("neg", $2, NULL);
+    }
+  | TRUE
+    {
+        $$ = createLeaf("true");
+    }
+  | FALSE
+    {
+        $$ = createLeaf("false");
     }
   | NUMBER
     {

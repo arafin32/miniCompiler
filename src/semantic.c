@@ -18,10 +18,14 @@ char* inferExprType(ASTNode* node)
     /* Leaf nodes - identifiers or literals */
     if (!node->left && !node->right)
     {
+        if (strcmp(node->value, "true") == 0 || strcmp(node->value, "false") == 0)
+        {
+            return "bool";
+        }
+
         /* If it's an identifier, look up its type */
         if (strlen(node->value) > 0 && isalpha(node->value[0]))
         {
-            /* Try to get the symbol type */
             char* type = getSymbolType(node->value);
             return type ? type : "int";
         }
@@ -91,19 +95,19 @@ void check_ast(ASTNode* node)
     if (strcmp(node->type, "assign") == 0)
     {
         char* var_name = node->left->value;
+        char* var_type;
         
+        /* If variable is not declared, implicitly declare it as the expression type */
+        char* expr_type = inferExprType(node->right);
         if (lookup(var_name) < 0)
         {
-            printf("SEMANTIC ERROR: Undeclared variable '%s'\n", var_name);
-            error_count++;
-            return;
+            insert(var_name, expr_type);
+            var_type = expr_type;
         }
-        
-        /* Get the variable type */
-        char* var_type = getSymbolType(var_name);
-        
-        /* Infer the expression type */
-        char* expr_type = inferExprType(node->right);
+        else
+        {
+            var_type = getSymbolType(var_name);
+        }
         
         /* Check type compatibility */
         if (strcmp(var_type, expr_type) != 0)
@@ -156,11 +160,10 @@ void check_ast(ASTNode* node)
     {
         if (strlen(node->value) > 0 && node->value[0] >= 'a' && node->value[0] <= 'z')
         {
-            /* might be identifier - check if declared */
+            /* might be identifier - implicitly declare as int if needed */
             if (lookup(node->value) < 0)
             {
-                printf("SEMANTIC ERROR: Undeclared variable '%s'\n", node->value);
-                error_count++;
+                insert(node->value, "int");
             }
         }
         check_ast(node->left);
