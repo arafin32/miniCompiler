@@ -129,6 +129,22 @@ x = 5;  // Comments can be inline too
 
 ---
 
+## Recent Fixes & Test Suite
+
+- Date: July 20, 2026 — small post-completion maintenance and bug fixes.
+- Fixes applied:
+    - Conservative dead-store elimination (preserve named-variable stores/initializations).
+    - Stronger semantic/type checks (undeclared identifiers in expressions, if/while condition typing, division-by-zero detection).
+    - Boolean literal lowering to constants in TAC (`true` → `1`, `false` → `0`).
+    - Stack-machine codegen fixes: label emission, register-spill safety, and duplicate header removal.
+    - Added a comprehensive error-handling test suite under `tests/` (error01..error20).
+
+Run the new error-suite with:
+```bash
+for f in tests/error*.ml; do echo "=== $f ==="; ./build/minicompiler < "$f"; done
+```
+
+
 ## Architecture
 
 The MiniCompiler implements a complete 7-phase compilation pipeline:

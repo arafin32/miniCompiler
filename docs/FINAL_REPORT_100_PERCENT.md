@@ -225,6 +225,20 @@ Source Code (.ml)
     - Optimization stats
     - Stack machine code
     - Variable storage layout
+
+---
+
+## Post-completion updates (July 20, 2026)
+
+After the main submission several maintenance fixes were applied to harden the compiler and correct optimizer/backend edge cases discovered during extended testing. Key updates:
+
+- Conservative dead-store elimination: optimizer now preserves stores to named variables (initializations) and only removes dead temporaries. This prevents removal of observable initializations such as `bool a = true;`.
+- Stronger semantic checks: detection of undeclared identifiers inside expressions, boolean condition type checking for `if`/`while`, and compile-time detection of constant division by zero.
+- Boolean literal lowering: `true` and `false` are lowered to `1` and `0` in TAC, and backend codegen emits immediate loads for these constants.
+- Stack-machine codegen fixes: proper label emission, safer register spill/reload behavior, and removal of duplicate header lines in generated output.
+- Added an error-handling test suite (`tests/error01_*.ml` .. `tests/error20_*.ml`) to validate semantic, syntax and backend behavior.
+
+These changes were applied to improve correctness and preserve observable program semantics during optimization.
 ```
 
 ---
