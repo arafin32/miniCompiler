@@ -20,16 +20,28 @@ int isNumber(const char* str)
     return 1;
 }
 
-/* Extract operand count for a temporary variable */
-int getTempUsageCount(const char* tempVar)
+static int isTokenChar(char c)
 {
-    int count = 0;
-    for (int i = 0; i < tacIndex; i++)
+    return (isalnum(c) || c == '_');
+}
+
+static int tokenMatch(const char* line, const char* token)
+{
+    const char* found = strchr(line, token[0]);
+    while (found)
     {
-        if (strstr(tacCode[i], tempVar) != NULL)
-            count++;
+        if (strncmp(found, token, strlen(token)) == 0)
+        {
+            char before = (found == line) ? '\0' : *(found - 1);
+            char after = *(found + strlen(token));
+            int ok_before = (before == '\0' || !isTokenChar(before));
+            int ok_after = (after == '\0' || !isTokenChar(after));
+            if (ok_before && ok_after)
+                return 1;
+        }
+        found = strchr(found + 1, token[0]);
     }
-    return count;
+    return 0;
 }
 
 /* Perform constant folding */
@@ -66,20 +78,30 @@ void constantFolding()
                     /* Replace all uses of this temp with the constant */
                     for (int j = i + 1; j < tacIndex; j++)
                     {
-                        char temp_pattern[30];
-                        sprintf(temp_pattern, " %s ", temp);
-                        char* found = strstr(tacCode[j], temp_pattern);
-                        if (found)
+                        const char* found = strchr(tacCode[j], temp[0]);
+                        while (found)
                         {
-                            /* Found usage - create new line with constant */
-                            char before[120], after[120];
-                            int pos = found - tacCode[j];
-                            strncpy(before, tacCode[j], pos);
-                            before[pos] = '\0';
-                            sprintf(after, " %d ", result);
-                            strcat(before, after);
-                            strcat(before, found + strlen(temp_pattern));
-                            strcpy(tacCode[j], before);
+                            if (strncmp(found, temp, strlen(temp)) == 0)
+                            {
+                                char before = (found == tacCode[j]) ? '\0' : *(found - 1);
+                                char after = *(found + strlen(temp));
+                                int ok_before = (before == '\0' || !isTokenChar(before));
+                                int ok_after = (after == '\0' || !isTokenChar(after));
+                                if (ok_before && ok_after)
+                                {
+                                    char beforeBuf[120];
+                                    char afterBuf[120];
+                                    int pos = found - tacCode[j];
+                                    strncpy(beforeBuf, tacCode[j], pos);
+                                    beforeBuf[pos] = '\0';
+                                    sprintf(afterBuf, "%d", result);
+                                    strcat(beforeBuf, afterBuf);
+                                    strcat(beforeBuf, found + strlen(temp));
+                                    strcpy(tacCode[j], beforeBuf);
+                                    break;
+                                }
+                            }
+                            found = strchr(found + 1, temp[0]);
                         }
                     }
                     
@@ -117,7 +139,7 @@ void deadCodeElimination()
             int used_later = 0;
             for (int j = i + 1; j < tacIndex; j++)
             {
-                if (strstr(tacCode[j], temp) != NULL)
+                if (tokenMatch(tacCode[j], temp))
                 {
                     used_later++;
                     break;
